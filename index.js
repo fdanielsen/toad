@@ -35,7 +35,7 @@
 
             script.setAttribute('type', 'text/javascript');
 
-            if (typeof fn == 'function') {
+            if (typeof callback == 'function') {
                 script[loadEventType] = function (e) {
                     e = e || element.ownerDocument.parentWindow.event;
 
@@ -49,7 +49,7 @@
                                 (e.type == 'readystatechange' &&
                                     (script.readyState == 'complete' || script.readyState == 'loaded')))) {
                         done = true;
-                        fn(e, script);
+                        callback(e, script);
                     }
                 };
             }
