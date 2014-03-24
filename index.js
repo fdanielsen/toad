@@ -1,8 +1,26 @@
+/**
+ * Utility for loading CSS and JavaScript files into a browser context.
+ *
+ * Supports Internet Explorer 9+ and other modern browsers.
+ */
 (function () {
     'use strict';
 
-    function ensureAbsolute (url, baseUrl) {
-        var type = url.indexOf('.js') !== -1 ? 'js' : 'css';
+    var baseUrl = '';
+
+    function getType (url) {
+        url = url.toLowerCase();
+        if (url.indexOf('.js') !== -1) {
+            return 'js';
+        }
+        else if (url.indexOf('.css') !== -1) {
+            return 'css';
+        }
+        return false;
+    }
+
+    function ensureAbsolute (url) {
+        var type = getType(url);
         return 'http' !== url.substr(0, 4) && '//' !== url.substr(0, 2) ?
             baseUrl + '/' + type + '/' + url :
             url;
@@ -13,8 +31,29 @@
          * Sets a custom base URL for resolving file URLs.
          * TODO: Simple sanity checks.
          */
-        setBaseUrl: function (baseUrl) {
-            this.baseUrl = baseUrl;
+        setBaseUrl: function (newBaseUrl) {
+            baseUrl = newBaseUrl;
+        },
+
+        inject: function (element, files, callback) {
+            var
+                numFiles = files.length,
+                filesDone = [],
+                loaders = {
+                    js: this.injectJavaScript.bind(this),
+                    css: this.injectStyleSheet.bind(this)
+                };
+
+            function fileDone (file) {
+                filesDone.push(file)
+                if (filesDone.length == numFiles && typeof callback === 'function') {
+                    callback(filesDone);
+                }
+            }
+
+            files.forEach(function (file) {
+                loaders[getType(file)](element, file, fileDone);
+            });
         },
 
         /**
@@ -29,32 +68,19 @@
         injectJavaScript: function (element, file, callback) {
             var
                 script = element.ownerDocument.createElement('script'),
-                src = ensureAbsolute(file, this.baseUrl),
-                loadEventType = script.addEventListener ? 'onload' : 'onreadystatechange',
-                done = false;
+                src = ensureAbsolute(file);
 
-            script.setAttribute('type', 'text/javascript');
 
             if (typeof callback == 'function') {
-                script[loadEventType] = function (e) {
-                    e = e || element.ownerDocument.parentWindow.event;
-
-                    /*
-                     * For readystatechange events we need to check for both 'complete' and 'loaded'
-                     * states. Internet Explorer may report either one of them, depending on how
-                     * the file was loaded (i.e. from cache or server).
-                     */
-                    if (!done &&
-                            (e.type == 'load' ||
-                                (e.type == 'readystatechange' &&
-                                    (script.readyState == 'complete' || script.readyState == 'loaded')))) {
-                        done = true;
-                        callback(e, script);
-                    }
+                script.onload = function (e) {
+                    callback(file);
+                    script.onload = null;
                 };
             }
 
+            script.setAttribute('type', 'text/javascript');
             script.setAttribute('src', src);
+
             return element.appendChild(script);
         },
 
@@ -66,16 +92,22 @@
          * @param String file         URL, relative or absolute, of stylesheet file.
          * @return HTMLLinkElement
          */
-        injectStyleSheet: function (element, file) {
+        injectStyleSheet: function (element, file, callback) {
             var
                 style = element.ownerDocument.createElement('link'),
-                href = ensureAbsolute(file, this.baseUrl);
+                href = ensureAbsolute(file);
 
-            // TODO: Detect load?
+            if (typeof callback === 'function') {
+                style.onload = function (e) {
+                    callback(file);
+                    style.onload = null;
+                };
+            }
 
             style.setAttribute('type', 'text/css');
             style.setAttribute('rel', 'stylesheet');
             style.setAttribute('href', href);
+
             return element.appendChild(style);
         }
     };
@@ -83,4 +115,7 @@
     if (typeof require === 'function' && typeof module !== 'undefined') {
         module.exports = toad;
     }
+	else {
+		window.toad = toad;
+	}
 })();
