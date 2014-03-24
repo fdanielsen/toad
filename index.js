@@ -40,8 +40,8 @@
                 numFiles = files.length,
                 filesDone = [],
                 loaders = {
-                    js: this.injectJavaScript.bind(this),
-                    css: this.injectStyleSheet.bind(this)
+                    js: this.injectJavaScript,
+                    css: this.injectStyleSheet
                 };
 
             function fileDone (file) {
@@ -115,7 +115,7 @@
     if (typeof require === 'function' && typeof module !== 'undefined') {
         module.exports = toad;
     }
-	else {
-		window.toad = toad;
-	}
+    else {
+        window.toad = toad;
+    }
 })();

@@ -14,4 +14,8 @@ test('loads multiple CSS and JavaScript files', function (t) {
     toad.inject(document.querySelector('head'), files, function (done) {
         t.equal(done.length, files.length);
     });
+
+    window.setTimeout(function () {
+        t.end();
+    }, 10000);
 });
