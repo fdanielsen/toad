@@ -3,9 +3,9 @@
 
     function ensureAbsolute (url, baseUrl) {
         var type = url.indexOf('.js') !== false ? 'js' : 'css';
-        return 'http' !== file.substr(0, 4) && '//' !== file.substr(0, 2) ?
-            baseUrl + '/' + type + '/' + file :
-            file;
+        return 'http' !== url.substr(0, 4) && '//' !== url.substr(0, 2) ?
+            baseUrl + '/' + type + '/' + url :
+            url;
     }
 
     var toad = {
