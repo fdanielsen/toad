@@ -2,8 +2,9 @@
     'use strict';
 
     function ensureAbsolute (url, baseUrl) {
+        var type = url.indexOf('.js') !== false ? 'js' : 'css';
         return 'http' !== file.substr(0, 4) && '//' !== file.substr(0, 2) ?
-            baseUrl + '/js/' + file :
+            baseUrl + '/' + type + '/' + file :
             file;
     }
 
