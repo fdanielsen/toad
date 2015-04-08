@@ -62,19 +62,28 @@
          *
          * @param HTMLElement element Element to inject script into.
          * @param String file         URL, relative or absolute, of JavaScript file.
-         * @param Function callback   Callback when script has loaded.
+         * @param Function [success]  Function called after the script has loaded successfully.
+         * @param Function [error]    Function called if an error occurred while loading the
+         *                            script.
          * @return HTMLScriptElement
          */
-        injectJavaScript: function (element, file, callback) {
+        injectJavaScript: function (element, file, success, error) {
             var
                 script = element.ownerDocument.createElement('script'),
                 src = ensureAbsolute(file);
 
-
-            if (typeof callback == 'function') {
-                script.onload = function (e) {
-                    callback(file);
+            if (typeof success === 'function') {
+                script.onload = function () {
+                    success(file);
                     script.onload = null;
+                };
+            }
+
+            if (typeof error === 'function') {
+                script.onerror = function () {
+                    error(file);
+                    element.removeChild(script);
+                    script.onerror = null;
                 };
             }
 
@@ -90,17 +99,28 @@
          *
          * @param HTMLElement element Element to inject stylesheet into.
          * @param String file         URL, relative or absolute, of stylesheet file.
+         * @param Function [success]  Function called after the stylesheet has loaded successfully.
+         * @param Function [error]    Function called if an error occurred while loading the
+         *                            stylesheet.
          * @return HTMLLinkElement
          */
-        injectStyleSheet: function (element, file, callback) {
+        injectStyleSheet: function (element, file, success, error) {
             var
                 style = element.ownerDocument.createElement('link'),
                 href = ensureAbsolute(file);
 
-            if (typeof callback === 'function') {
-                style.onload = function (e) {
-                    callback(file);
+            if (typeof success === 'function') {
+                style.onload = function () {
+                    success(file);
                     style.onload = null;
+                };
+            }
+
+            if (typeof error === 'function') {
+                style.onerror = function () {
+                    error(file);
+                    element.removeChild(style);
+                    style.onerror = null;
                 };
             }
 
